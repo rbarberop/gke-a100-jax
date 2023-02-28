@@ -27,7 +27,7 @@ spec:
       restartPolicy: Never
       containers:
       - name: jax-worker
-        image: gcr.io/rbarbero-batch-test3/jax-container:latest
+        image: gcr.io/<<<YOUR_GCP_PROJECT_NAME>>/jax-container:latest
         command: ["python", "train.py"]
         args:
         - --num_processes

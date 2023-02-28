@@ -40,8 +40,8 @@ patches:
     version: v1
 
 images:
-- name: gcr.io/rbarbero-batch-test3/jax-container:latest
-  newName: gcr.io/rbarbero-batch-test3/jax-container
+- name: gcr.io/<<<YOUR_GCP_PROJECT_NAME>>/jax-container:latest
+  newName: gcr.io/<<<YOUR_GCP_PROJECT_NAME>>/jax-container
   newTag: latest
 
 replacements:

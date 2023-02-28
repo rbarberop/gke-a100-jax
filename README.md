@@ -11,7 +11,8 @@ connected to 8 NVIDIA A100 40G GPUs and run a JAX example as a K8s Job on the GP
 ### Prerequisites
 
 - A GCP Project with billing setup
-- Docker and kubectl installed in the machine where you are running these steps
+- Cloud SDK, docker and kubectl installed in the machine where you are running these steps
+- Clone this repo
 
 ## Getting Started
 
@@ -86,14 +87,67 @@ You can review the JAX code included in `train.py`
 The yaml files in the `kubernetes` folder have all the configuration needed to run 
 the JAX code as a Kubernetes Job.
 
+- Change the image name in the `kubernetes/job.yaml` and `kubernetes/kustomization.yaml` files
+> Your image name should be something like `gcr.io/<<YOUR_GCP_PROJECT_NAME>>/jax-container:latest`
+
 - Deploy the components in the GKE cluster you created
 
 ```
    cd kubernetes
-   kubectl apply -f .
+   kubectl apply -k .
 ```
 
+- Check that the job has been created
 
+```
+   kubectl get jobs
+```
+
+You should see somehting similar to this:
+
+```
+   NAME              COMPLETIONS   DURATION   AGE
+jax-hello-world      0/2           5s         5s
+```
+
+- Check the Pods that the job has created
+
+```
+   kubectl get pods
+```
+
+You should see something simlar to this:
+```
+NAME                      READY   STATUS        RESTARTS   AGE
+jax-hello-world-0-s7pwd   0/1     Pending       0          67s
+jax-hello-world-1-27z8d   0/1     Pending       0          67s
+```
+
+> Be patient, the GKE cluster needs to pull the container image, and this might take a few minutes the first time
+
+- Once the status of the pods is `Running` or `Terminated`, copy tha name of one of the pods and check the logs. 
+It contains the output of running the JAX code in `train.py`
+
+```
+   kubectl logs jax-hello-world-0-s7pwd
+```
+
+If verything goes well, you should see an output similar to this
+
+```
+I0228 18:13:44.750335 140410831198016 distributed.py:68] Starting JAX distributed service on 10.76.3.4:1234
+I0228 18:13:44.751508 140410831198016 distributed.py:79] Connecting to JAX distributed service on 10.76.3.4:1234
+I0228 18:13:44.880263 140410831198016 xla_bridge.py:355] Unable to initialize backend 'tpu_driver': NOT_FOUND: Unable to find driver in registry given worker: 
+I0228 18:13:45.414607 140410831198016 xla_bridge.py:355] Unable to initialize backend 'rocm': NOT_FOUND: Could not find registered platform with name: "rocm". Available platform names are: Interpreter CUDA Host
+I0228 18:13:45.415148 140410831198016 xla_bridge.py:355] Unable to initialize backend 'tpu': module 'jaxlib.xla_extension' has no attribute 'get_tpu_client'
+I0228 18:13:45.415263 140410831198016 xla_bridge.py:355] Unable to initialize backend 'plugin': xla_extension has no attributes named get_plugin_device_client. Compile TensorFlow with //tensorflow/compiler/xla/python:enable_plugin_device set to true (defaults to false) to enable this.
+Coordinator host name: jax-hello-world-0.headless-svc
+Coordiantor IP address: 10.76.3.4
+JAX global devices:[StreamExecutorGpuDevice(id=0, process_index=0, slice_index=0), StreamExecutorGpuDevice(id=1, process_index=0, slice_index=0), StreamExecutorGpuDevice(id=2, process_index=1, slice_index=0), StreamExecutorGpuDevice(id=3, process_index=1, slice_index=0)]
+JAX local devices:[StreamExecutorGpuDevice(id=0, process_index=0, slice_index=0), StreamExecutorGpuDevice(id=1, process_index=0, slice_index=0)]
+[4. 4.]
+Hooray ...
+```
 
 ## License
 
